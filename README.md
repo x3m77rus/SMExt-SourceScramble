@@ -1,5 +1,50 @@
 # Source Scramble
 
+## Build in this workspace: SourceMod 1.13 / Linux x86
+
+From the workspace root with Docker Desktop running:
+
+```powershell
+.\scripts\build-sourcescramble.ps1
+```
+
+The native extension uses the existing `sourcemod-ext-x86` image. The manager
+plugin uses `oldspcomp64.exe` and the includes in
+`C:\src\servers\srcds_test\addons\sourcemod\scripting`. Use `-ScriptingPath`
+to select another scripting environment, or `-Configuration Debug` for a debug
+extension build. No additional Docker image is created.
+
+Results are under `output/SMExt-SourceScramble/release/` (or `debug/`).
+`sourcescramble-linux-x86.tar.gz` and the unpacked `package/` contain:
+
+- `addons/sourcemod/extensions/sourcescramble.ext.so`
+- `addons/sourcemod/plugins/sourcescramble_manager.smx`
+- `addons/sourcemod/configs/sourcescramble_manager.cfg` (empty patch list)
+- the manager source, `sourcescramble.inc`, and the extension license.
+
+This checkout adapts `GetAddressOfCell`, `GetAddressOfString`,
+`MemoryBlock.Address`, and `MemoryPatch.Address` to SourceMod 1.13's 64-bit
+`Address` return convention. It also retains the legacy single-cell convention
+for older compiled plugins. x86 pointers are zero-extended into the 64-bit
+result. This does not enable the extension's address natives on 64-bit servers.
+
+The build checks ELF32/i386 and loads the library in a 32-bit process to verify
+the SourceMod API entry point. The manager is compiled with warnings as errors.
+The current image produces a binary requiring glibc 2.38 or newer; see
+`minimum-glibc.txt`, `dynamic-dependencies.txt`, and `symbol-versions.txt` in the
+output directory. No files are deployed to the server, and no game-specific
+memory patches are exercised by these checks.
+
+The focused tests in [tests/README.md](tests/README.md) additionally exercise the
+actual address natives in a standalone x86 SourcePawn VM, for both Address
+conventions, including cell/string references and high-bit pointer values.
+
+To build only the native library:
+
+```powershell
+.\scripts\build.ps1 SMExt-SourceScramble
+```
+
 [:coffee: fund my caffeine addiction :coffee:](https://buymeacoff.ee/nosoop)
 
 A SourceMod extension that provides:

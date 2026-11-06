@@ -30,6 +30,7 @@
 
 # AMBuild
 build/
+build-*/
 
 # Compiled SourceMod plugins
 *.smx
